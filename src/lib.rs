@@ -1,4 +1,5 @@
-use std::hash::{DefaultHasher, Hash, Hasher};
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
 
 use std::collections::HashSet;
 // hashing
@@ -40,12 +41,11 @@ fn diag_sum(matrix: &Array2<f64>) -> f64 {
 }
 
 fn prehash(tags: Vec<HashSet<String>>) -> Vec<RoaringBitmap> {
-    // hasher
-    let mut hasher = DefaultHasher::new();
     // prehash
     tags.iter().map(|tag_set| {
         let mut bitmap = RoaringBitmap::new();
         for tag in tag_set {
+            let mut hasher = DefaultHasher::new();
             tag.hash(&mut hasher);
             bitmap.insert(hasher.finish());
         }
