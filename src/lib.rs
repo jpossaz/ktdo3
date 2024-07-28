@@ -2,16 +2,21 @@ use std::{collections::HashSet};
 
 use pyo3::prelude::*;
 use ndarray::Array2;
+use roaring::RoaringBitmap;
 
 /// Compute the Jaccard similarity between two sets.
-fn tag_similarity_kernel(a: &HashSet<String>, b: &HashSet<String>) -> f64 {
-    let intersection = a.intersection(b).count() as f64;
-    let union = a.union(b).count() as f64;
-    intersection / union
+fn tag_similarity_kernel(a: &RoaringBitmap, b: &RoaringBitmap) -> f64 {
+    let union = a.union_len(&b) as f64;
+    if union == 0.0 {
+        1.0
+    } else {
+        let intersection = a.intersection_len(&b) as f64;
+        intersection / union
+    }
 }
 
 /// Compute the Jaccard similarity matrix between two vecs of sets.
-fn tag_similarity_matrix(a: &Vec<HashSet<String>>, b: &Vec<HashSet<String>>) -> Array2<f64> {
+fn tag_similarity_matrix(a: &Vec<RoaringBitmap>, b: &Vec<RoaringBitmap>) -> Array2<f64> {
     let mut matrix = Array2::zeros((a.len(), b.len()));
     for (i, a_tag) in a.iter().enumerate() {
         for (j, b_tag) in b.iter().enumerate() {
@@ -30,11 +35,25 @@ fn diag_sum(matrix: &Array2<f64>) -> f64 {
     sum
 }
 
+fn prehash(tags: Vec<HashSet<String>>) -> Vec<RoaringBitmap> {
+    let mut prehashed = Vec::new();
+    for tag_set in tags {
+        let mut rb = RoaringBitmap::new();
+        for tag in tag_set {
+            rb.insert(tag.parse::<u32>().unwrap());
+        }
+        prehashed.push(rb);
+    }
+    prehashed
+}
+
 /// Compute mmd or kernel distance between two arrays of sets of tags
 #[pyfunction]
 fn kernel_tag_distance(a: Vec<HashSet<String>>, b: Vec<HashSet<String>>) -> PyResult<f64> {
     let m = a.len() as f64;
     let n = b.len() as f64;
+    let a = prehash(a);
+    let b = prehash(b);
     let kxx = tag_similarity_matrix(&a, &a);
     let kyy = tag_similarity_matrix(&b, &b);
     let kxy = tag_similarity_matrix(&a, &b);
