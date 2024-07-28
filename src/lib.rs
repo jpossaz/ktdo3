@@ -1,4 +1,6 @@
 use std::{collections::HashSet};
+// hashing
+use std::hash::{Hash, DefaultHasher};
 
 use pyo3::prelude::*;
 use ndarray::Array2;
@@ -36,15 +38,17 @@ fn diag_sum(matrix: &Array2<f64>) -> f64 {
 }
 
 fn prehash(tags: Vec<HashSet<String>>) -> Vec<RoaringBitmap> {
-    let mut prehashed = Vec::new();
-    for tag_set in tags {
-        let mut rb = RoaringBitmap::new();
+    // hasher
+    let mut hasher = DefaultHasher::new();
+    // prehash
+    tags.iter().map(|tag_set| {
+        let mut bitmap = RoaringBitmap::new();
         for tag in tag_set {
-            rb.insert(tag.parse::<u32>().unwrap());
+            tag.hash(&mut hasher);
+            bitmap.insert(hasher.finish());
         }
-        prehashed.push(rb);
-    }
-    prehashed
+        bitmap
+    }).collect()
 }
 
 /// Compute mmd or kernel distance between two arrays of sets of tags
