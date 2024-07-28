@@ -25,13 +25,19 @@ fn tag_similarity_kernel(a: &RoaringBitmap, b: &RoaringBitmap) -> f64 {
 /// Compute the Jaccard similarity matrix between two vecs of sets.
 fn tag_similarity_matrix(a: &Vec<RoaringBitmap>, b: &Vec<RoaringBitmap>) -> Array2<f64> {
     let mut matrix = Array2::zeros((a.len(), b.len()));
-    a.par_iter().enumerate().for_each(|(i, a_tag)| { // Parallelize outer loop
-        for (j, b_tag) in b.iter().enumerate() {
-            matrix[[i, j]] = tag_similarity_kernel(a_tag, b_tag);
+    let rows: Vec<Vec<f64>> = a.par_iter().map(|a_tag| {
+        b.iter().map(|b_tag| tag_similarity_kernel(a_tag, b_tag)).collect::<Vec<f64>>()
+    }).collect();
+
+    for (i, row) in rows.iter().enumerate() {
+        for (j, value) in row.iter().enumerate() {
+            matrix[[i, j]] = *value;
         }
-    });
+    }
+
     matrix
 }
+
 
 /// Compute the sum of the diagonal of a matrix.
 fn diag_sum(matrix: &Array2<f64>) -> f64 {
