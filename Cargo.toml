@@ -11,4 +11,5 @@ crate-type = ["cdylib"]
 [dependencies]
 ndarray = "0.15.6"
 pyo3 = "0.22.0"
+rayon = "1.10.0"
 roaring = "0.10.6"

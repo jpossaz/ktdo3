@@ -4,6 +4,8 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
 // hashing
 
+use rayon::prelude::*;
+
 
 use pyo3::prelude::*;
 use ndarray::Array2;
@@ -23,11 +25,11 @@ fn tag_similarity_kernel(a: &RoaringBitmap, b: &RoaringBitmap) -> f64 {
 /// Compute the Jaccard similarity matrix between two vecs of sets.
 fn tag_similarity_matrix(a: &Vec<RoaringBitmap>, b: &Vec<RoaringBitmap>) -> Array2<f64> {
     let mut matrix = Array2::zeros((a.len(), b.len()));
-    for (i, a_tag) in a.iter().enumerate() {
+    a.par_iter().enumerate().for_each(|(i, a_tag)| { // Parallelize outer loop
         for (j, b_tag) in b.iter().enumerate() {
             matrix[[i, j]] = tag_similarity_kernel(a_tag, b_tag);
         }
-    }
+    });
     matrix
 }
 
