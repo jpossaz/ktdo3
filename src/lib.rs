@@ -1,6 +1,6 @@
-use std::{collections::HashSet};
+use std::collections::HashSet;
 // hashing
-use std::hash::{Hash, DefaultHasher};
+use std::collections::hash_map::DefaultHasher;
 
 use pyo3::prelude::*;
 use ndarray::Array2;
