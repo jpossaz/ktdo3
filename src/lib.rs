@@ -47,7 +47,7 @@ fn prehash(tags: Vec<HashSet<String>>) -> Vec<RoaringBitmap> {
         for tag in tag_set {
             let mut hasher = DefaultHasher::new();
             tag.hash(&mut hasher);
-            bitmap.insert(hasher.finish());
+            bitmap.insert(hasher.finish() as u32);
         }
         bitmap
     }).collect()
