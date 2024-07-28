@@ -1,6 +1,7 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
+
 use std::collections::HashSet;
 // hashing
-use std::hash::{DefaultHasher, Hash, Hasher};
 
 
 use pyo3::prelude::*;
